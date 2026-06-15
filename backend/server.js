@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import path from "path";
+import fs from "fs";
 
 
 import { v2 as cloudinary } from "cloudinary";
@@ -34,6 +35,17 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+const __dirname = path.resolve();
+
+if (process.env.NODE_ENV === "production" || (process.env.NODE_ENV !== "development" && fs.existsSync(path.join(__dirname, "frontend/dist")))) {
+	app.use(express.static(path.join(__dirname, "/frontend/dist")));
+
+	app.get("*", (req, res) => {
+		res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+	});
+}
+
 // Start server
 const startServer = async () => {
   try {
