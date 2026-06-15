@@ -159,7 +159,7 @@ export const likeUnlikePost = async (req, res) => {
       );
       await User.updateOne(
         { _id: userId },
-        { $pull: { likedposts: postId } }
+        { $pull: { likedPosts: postId } }
       );
 
       return res.status(200).json({
@@ -171,7 +171,7 @@ export const likeUnlikePost = async (req, res) => {
     post.likes.push(userId);
      await User.updateOne(
         { _id: userId },
-        { $push: { likedposts: postId } }
+        { $push: { likedPosts: postId } }
       );
 
     await post.save();
