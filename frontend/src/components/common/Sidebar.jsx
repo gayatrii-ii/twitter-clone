@@ -3,15 +3,46 @@ import XSvg from "../svgs/X";
 import { MdHomeFilled } from "react-icons/md";
 import { IoNotifications } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Link } from "react-router-dom";
 import { BiLogOut } from "react-icons/bi";
 
+import { Link } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+
 const Sidebar = () => {
+	const queryClient = useQueryClient();
+
 	const data = {
 		fullName: "test user",
 		username: "testuser",
 		profileImg: "/avatars/boy1.png",
 	};
+
+	const { mutate: logout, isPending } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch("/api/auth/logout", {
+					method: "POST",
+				});
+
+				const data = await res.json();
+
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong");
+				}
+
+				return data;
+			} catch (error) {
+				console.error(error);
+				toast.error(error.message);
+				throw error;
+			}
+		},
+		onSuccess: () => {
+			queryClient.setQueryData(["authUser"], null);
+			toast.success("Logged out successfully!");
+		},
+	});
 
 	return (
 		<div className='md:flex-[2_2_0] w-18 max-w-52'>
@@ -19,6 +50,7 @@ const Sidebar = () => {
 				<Link to='/' className='flex justify-center md:justify-start'>
 					<XSvg className='px-2 w-12 h-12 rounded-full fill-white hover:bg-stone-900' />
 				</Link>
+
 				<ul className='flex flex-col gap-3 mt-4'>
 					<li className='flex justify-center md:justify-start'>
 						<Link
@@ -29,6 +61,7 @@ const Sidebar = () => {
 							<span className='text-lg hidden md:block'>Home</span>
 						</Link>
 					</li>
+
 					<li className='flex justify-center md:justify-start'>
 						<Link
 							to='/notifications'
@@ -49,6 +82,7 @@ const Sidebar = () => {
 						</Link>
 					</li>
 				</ul>
+
 				{data && (
 					<Link
 						to={`/profile/${data.username}`}
@@ -56,15 +90,36 @@ const Sidebar = () => {
 					>
 						<div className='avatar hidden md:inline-flex'>
 							<div className='w-8 rounded-full'>
-								<img src={data?.profileImg || "/avatar-placeholder.png"} />
+								<img
+									src={data?.profileImg || "/avatar-placeholder.png"}
+									alt='profile'
+								/>
 							</div>
 						</div>
+
 						<div className='flex justify-between flex-1'>
 							<div className='hidden md:block'>
-								<p className='text-white font-bold text-sm w-20 truncate'>{data?.fullName}</p>
-								<p className='text-slate-500 text-sm'>@{data?.username}</p>
+								<p className='text-white font-bold text-sm w-20 truncate'>
+									{data?.fullName}
+								</p>
+								<p className='text-slate-500 text-sm'>
+									@{data?.username}
+								</p>
 							</div>
-							<BiLogOut className='w-5 h-5 cursor-pointer' />
+
+							{!isPending && (
+								<BiLogOut
+									className='w-5 h-5 cursor-pointer'
+									onClick={(e) => {
+										e.preventDefault();
+										logout();
+									}}
+								/>
+							)}
+
+							{isPending && (
+								<span className='loading loading-spinner loading-sm'></span>
+							)}
 						</div>
 					</Link>
 				)}
@@ -72,4 +127,5 @@ const Sidebar = () => {
 		</div>
 	);
 };
+
 export default Sidebar;
