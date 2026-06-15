@@ -55,11 +55,43 @@ const Post = ({ post }) => {
 				throw new Error(error.message);
 			}
 		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["posts"] });
+		onMutate: async () => {
+			await queryClient.cancelQueries({ queryKey: ["posts"] });
+			const queries = queryClient.getQueriesData({ queryKey: ["posts"] });
+
+			queries.forEach(([queryKey, oldPosts]) => {
+				if (!oldPosts) return;
+				queryClient.setQueryData(queryKey, (oldData) => {
+					if (!oldData) return [];
+					return oldData.map((p) => {
+						if (p._id === post._id) {
+							const isAlreadyLiked = p.likes.includes(authUser?._id);
+							const updatedLikes = isAlreadyLiked
+								? p.likes.filter((id) => id !== authUser?._id)
+								: [...p.likes, authUser?._id];
+							return { ...p, likes: updatedLikes };
+						}
+						return p;
+					});
+				});
+			});
+
+			return {
+				rollback: () => {
+					queries.forEach(([queryKey, oldData]) => {
+						queryClient.setQueryData(queryKey, oldData);
+					});
+				}
+			};
 		},
-		onError: (error) => {
-			toast.error(error.message);
+		onError: (err, newLike, context) => {
+			if (context?.rollback) {
+				context.rollback();
+			}
+			toast.error(err.message);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: ["posts"] });
 		},
 	});
 

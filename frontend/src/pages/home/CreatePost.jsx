@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { IoCloseSharp } from "react-icons/io5";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { compressImage } from "../../utils/image";
 
 const CreatePost = () => {
 	const [text, setText] = useState("");
@@ -46,14 +47,16 @@ const CreatePost = () => {
 		createPost({ text, img });
 	};
 
-	const handleImgChange = (e) => {
+	const handleImgChange = async (e) => {
 		const file = e.target.files[0];
 		if (file) {
-			const reader = new FileReader();
-			reader.onload = () => {
-				setImg(reader.result);
-			};
-			reader.readAsDataURL(file);
+			try {
+				const compressedDataUrl = await compressImage(file);
+				setImg(compressedDataUrl);
+			} catch (error) {
+				console.error(error);
+				toast.error("Failed to process image");
+			}
 		}
 	};
 

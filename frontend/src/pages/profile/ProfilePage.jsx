@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { compressImage } from "../../utils/image";
 
 import Posts from "../../components/common/Posts";
 import ProfileHeaderSkeleton from "../../components/skeletons/ProfileHeaderSkeleton";
@@ -86,15 +87,17 @@ const ProfilePage = () => {
 		refetch();
 	}, [username, refetch]);
 
-	const handleImgChange = (e, state) => {
+	const handleImgChange = async (e, state) => {
 		const file = e.target.files[0];
 		if (file) {
-			const reader = new FileReader();
-			reader.onload = () => {
-				state === "coverImg" && setCoverImg(reader.result);
-				state === "profileImg" && setProfileImg(reader.result);
-			};
-			reader.readAsDataURL(file);
+			try {
+				const compressedDataUrl = await compressImage(file);
+				state === "coverImg" && setCoverImg(compressedDataUrl);
+				state === "profileImg" && setProfileImg(compressedDataUrl);
+			} catch (error) {
+				console.error(error);
+				toast.error("Failed to process image");
+			}
 		}
 	};
 
