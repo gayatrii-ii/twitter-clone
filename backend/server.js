@@ -10,6 +10,7 @@ import { v2 as cloudinary } from "cloudinary";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
 import connectMongoDB from "./db/connectMongoDB.js";
+import postRoutes from "./routes/post.routes.js";
 
 dotenv.config({ path: path.resolve("./.env") });
 
@@ -30,6 +31,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/posts", postRoutes);
 
 // Start server
 const startServer = async () => {
