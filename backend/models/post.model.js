@@ -10,7 +10,6 @@ const postSchema = new mongoose.Schema({
     },
     text:{
         type: String,
-        required: true,
     },
     img:{
         type:String,
@@ -19,7 +18,7 @@ const postSchema = new mongoose.Schema({
     likes:[
         {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "true",
+            ref: "User",
         }
     ],
     comments:[
