@@ -32,7 +32,7 @@ const SignUpPage = () => {
 				});
 
 				const data = await res.json();
-				//if (!res.ok) throw new Error(data.error || "Something went wrong");
+				if (!res.ok) throw new Error(data.error || "Something went wrong");
 
 				console.log(data);
 				return data;
@@ -50,6 +50,10 @@ const SignUpPage = () => {
 
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		if (!formData.email.trim() || !formData.username.trim() || !formData.fullName.trim() || !formData.password) {
+			toast.error("All fields are required");
+			return;
+		}
 		mutate(formData);
 	};
 
